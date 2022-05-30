@@ -1,21 +1,14 @@
 package main
 
 import (
-	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 
-	"github.com/Keyzi0/notes_telegram/models"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/gookit/config/v2"
-	"github.com/gookit/config/v2/yaml"
 )
 
 func main() {
-	fmt.Println("Hello " + os.Getenv("BOT_TOKEN"))
-	cfg := getConfig()
-	bot, err := tgbotapi.NewBotAPI(cfg.BotToken)
+	bot, err := tgbotapi.NewBotAPI(os.Getenv("BOT_TOKEN"))
 	if err != nil {
 		log.Panic(err)
 	}
@@ -39,28 +32,4 @@ func main() {
 			bot.Send(msg)
 		}
 	}
-}
-
-func getConfig() models.Config {
-	files, err := ioutil.ReadDir("./")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for _, f := range files {
-		fmt.Println(f.Name())
-	}
-
-	config.WithOptions(config.ParseEnv)
-
-	// add driver for support yaml content
-	config.AddDriver(yaml.Driver)
-
-	if err = config.LoadFiles("config.yml"); err != nil {
-		panic(err)
-	}
-	var configs models.Config
-	config.BindStruct("bot", &configs)
-	fmt.Println(fmt.Sprintf("config: %v", configs))
-	return configs
 }
