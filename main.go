@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 
 	"github.com/Keyzi0/notes_telegram/models"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -12,6 +13,7 @@ import (
 )
 
 func main() {
+	fmt.Println("Hello " + os.Getenv("BOT_TOKEN"))
 	cfg := getConfig()
 	bot, err := tgbotapi.NewBotAPI(cfg.BotToken)
 	if err != nil {
@@ -54,7 +56,7 @@ func getConfig() models.Config {
 	// add driver for support yaml content
 	config.AddDriver(yaml.Driver)
 
-	if err = config.LoadFiles("./config.yml"); err != nil {
+	if err = config.LoadFiles("config.yml"); err != nil {
 		panic(err)
 	}
 	var configs models.Config
