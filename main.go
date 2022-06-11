@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -27,7 +28,7 @@ func main() {
 		if update.Message != nil { // If we got a message
 			log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
 
-			sendRMQMsg(update.Message.Text)
+			sendRMQMsg(update.Message.From.ID, update.Message.Text)
 
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
 			msg.ReplyToMessageID = update.Message.MessageID
@@ -37,7 +38,7 @@ func main() {
 	}
 }
 
-func sendRMQMsg(msg string) {
+func sendRMQMsg(userID int64, msg string) {
 	conn, err := amqp.Dial(os.Getenv("RMQ_URL"))
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
@@ -56,6 +57,11 @@ func sendRMQMsg(msg string) {
 	)
 	failOnError(err, "Failed to declare a queue")
 
+	headers := amqp.Table{
+		"method": "put",
+		"userID": fmt.Sprint(userID),
+	}
+
 	body := msg
 	err = ch.Publish(
 		"",     // exchange
@@ -63,6 +69,7 @@ func sendRMQMsg(msg string) {
 		false,  // mandatory
 		false,  // immediate
 		amqp.Publishing{
+			Headers:     headers,
 			ContentType: "text/plain",
 			Body:        []byte(body),
 		})
